@@ -12,10 +12,21 @@ def main():
 
     result.append(task1(PsnrTestImage, PsnrTestImage2))
     result.append(task2(imageForShadeOfGrayFilter))
-    # result.append(task3(imageForConverting))
+    result.append(task3(imageForConverting))
     with open("spot-filters/result/result.txt", "w") as file:
         print(result, file=file)
 
+def brightnessIncreaseRGB(img, value=30):
+    hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+    h, s, v = cv2.split(hsv)
+
+    lim = 255 - value
+    v[v > lim] = 255
+    v[v <= lim] += value
+
+    final_hsv = cv2.merge((h, s, v))
+    img = cv2.cvtColor(final_hsv, cv2.COLOR_HSV2BGR)
+    return img
 
 def brightnessIncreaseHSV(image, numberOfIncrease):
     result = np.array(image)
@@ -60,34 +71,34 @@ def task2(image):
     task_result.append(("Метрика сходства двух изображений", endTime, "psnr = " + str(psnrResult)))
     return task_result
 
-# def task_3(image):
-#     task_result = []
+def task3(image):
+    task_result = []
 
-#     startTime = time.time()
-#     hsvImage = rbg2hsv(image)
-#     endTime = time.time() - startTime
-#     task_result.append(("Преобразование самопальной функцией", endTime, None))
-#     cv2.imwrite("result/HsvResult.jpg", hsvImage)
+    startTime = time.time()
+    hsvImage = rgb2hsv(image)
+    endTime = time.time() - startTime
+    task_result.append(("Преобразование самопальной функцией", endTime, None))
+    cv2.imwrite("spot-filters/result/HsvResult.jpg", hsvImage)
 
-#     startTime = time.time()
-#     opencvHsvImage = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
-#     endTime = time.time() - startTime
-#     task_result.append(("Преобразование opencv функцией", endTime, None))
-#     cv2.imwrite("result/opencvHsvResult.jpg", opencvHsvImage)
+    startTime = time.time()
+    opencvHsvImage = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+    endTime = time.time() - startTime
+    task_result.append(("Преобразование opencv функцией", endTime, None))
+    cv2.imwrite("spot-filters/result/opencvHsvResult.jpg", opencvHsvImage)
 
-#     startTime = time.time()
-#     rgbIncreaseBrightness = brightnessIncreaseRGB(image, 51)
-#     endTime = time.time() - startTime
-#     task_result.append(("Увеличения яркости rgb", endTime, None))
-#     cv2.imwrite("result/rgbIncreaseBrightness.jpg", rgbIncreaseBrightness)
+    startTime = time.time()
+    rgbIncreaseBrightness = brightnessIncreaseRGB(image, 51)
+    endTime = time.time() - startTime
+    task_result.append(("Увеличения яркости rgb", endTime, None))
+    cv2.imwrite("spot-filters/result/rgbIncreaseBrightness.jpg", rgbIncreaseBrightness)
 
-#     startTime = time.time()
-#     hsvIncreaseBrightness = brightnessIncreaseHSV(opencvHsvImage, 20)
-#     endTime = time.time() - startTime
-#     task_result.append(("Увеличения яркости hsv", endTime, None))
-#     cv2.imwrite("result/hsvIncreaseBrightness.jpg", hsvIncreaseBrightness)
+    startTime = time.time()
+    hsvIncreaseBrightness = brightnessIncreaseHSV(opencvHsvImage, 20)
+    endTime = time.time() - startTime
+    task_result.append(("Увеличения яркости hsv", endTime, None))
+    cv2.imwrite("spot-filters/result/hsvIncreaseBrightness.jpg", hsvIncreaseBrightness)
 
-#     return task_result
+    return task_result
 
 if __name__ == "__main__":
     main()

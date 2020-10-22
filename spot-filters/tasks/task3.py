@@ -1,47 +1,40 @@
-def hsb2rgb(hsb):
+import numpy as np
 
-    H = float(hsb[0] / 360.0)
-    S = float(hsb[1] / 100.0)
-    B = float(hsb[2] / 100.0)
+def rgb2hsv(rgb):
 
-    if (S == 0):
-    R = int(round(B * 255))
-    G = int(round(B * 255))
-    B = int(round(B * 255))
-    else:
-    var_h = H * 6
-    if (var_h == 6):
-    var_h = 0 # H must be < 1
-    var_i = int(var_h)
-    var_1 = B * (1 - S)
-    var_2 = B * (1 - S * (var_h - var_i))
-    var_3 = B * (1 - S * (1 - (var_h - var_i)))
+    rgb = rgb.astype('float')
+    maxv = np.amax(rgb, axis=2)
+    maxc = np.argmax(rgb, axis=2)
+    minv = np.amin(rgb, axis=2)
+    minc = np.argmin(rgb, axis=2)
 
-    if (var_i == 0):
-    var_r = B ; var_g = var_3 ; var_b = var_1
-    elif (var_i == 1):
-    var_r = var_2 ; var_g = B ; var_b = var_1
-    elif (var_i == 2):
-    var_r = var_1 ; var_g = B ; var_b = var_3
-    elif (var_i == 3):
-    var_r = var_1 ; var_g = var_2 ; var_b = B
-    elif (var_i == 4):
-    var_r = var_3 ; var_g = var_1 ; var_b = B
-    else:
-    var_r = B ; var_g = var_1 ; var_b = var_2
+    hsv = np.zeros(rgb.shape, dtype='float')
+    hsv[maxc == minc, 0] = np.zeros(hsv[maxc == minc, 0].shape)
+    hsv[maxc == 0, 0] = (((rgb[..., 1] - rgb[..., 2]) * 60.0 / (maxv - minv + np.spacing(1))) % 360.0)[maxc == 0]
+    hsv[maxc == 1, 0] = (((rgb[..., 2] - rgb[..., 0]) * 60.0 / (maxv - minv + np.spacing(1))) + 120.0)[maxc == 1]
+    hsv[maxc == 2, 0] = (((rgb[..., 0] - rgb[..., 1]) * 60.0 / (maxv - minv + np.spacing(1))) + 240.0)[maxc == 2]
+    hsv[maxv == 0, 1] = np.zeros(hsv[maxv == 0, 1].shape)
+    hsv[maxv != 0, 1] = (1 - minv / (maxv + np.spacing(1)))[maxv != 0]
+    hsv[..., 2] = maxv
 
-    R = int(round(var_r * 255))
-    G = int(round(var_g * 255))
-    B = int(round(var_b * 255))
+    return hsv
 
-    return [R, G, B] 
+def hsv2rgb(hsv):
 
-img = cv2.imread('test.jpg') #load rgb image
-hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV) #convert it to hsv
+    hi = np.floor(hsv[..., 0] / 60.0) % 6
+    hi = hi.astype('uint8')
+    v = hsv[..., 2].astype('float')
+    f = (hsv[..., 0] / 60.0) - np.floor(hsv[..., 0] / 60.0)
+    p = v * (1.0 - hsv[..., 1])
+    q = v * (1.0 - (f * hsv[..., 1]))
+    t = v * (1.0 - ((1.0 - f) * hsv[..., 1]))
 
-for x in range(0, len(hsv)):
-    for y in range(0, len(hsv[0])):
-        hsv[x, y][2] += value
+    rgb = np.zeros(hsv.shape)
+    rgb[hi == 0, :] = np.dstack((v, t, p))[hi == 0, :]
+    rgb[hi == 1, :] = np.dstack((q, v, p))[hi == 1, :]
+    rgb[hi == 2, :] = np.dstack((p, v, t))[hi == 2, :]
+    rgb[hi == 3, :] = np.dstack((p, q, v))[hi == 3, :]
+    rgb[hi == 4, :] = np.dstack((t, p, v))[hi == 4, :]
+    rgb[hi == 5, :] = np.dstack((v, p, q))[hi == 5, :]
 
-img = cv2.cvtColor(hsv, cv2.COLOR_HSV2BGR)
-cv2.imwrite("image_processed.jpg", img)
+    return rgb 
